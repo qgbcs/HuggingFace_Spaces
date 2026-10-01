@@ -1,0 +1,9 @@
+gradio>=5.0
+fastapi>=0.115
+uvicorn>=0.30
+a2wsgi>=1.10
+paho-mqtt>=2.0
+ecdsa>=0.19
+prompt_toolkit>=3.0
+Pygments>=2.15
+edge-tts
