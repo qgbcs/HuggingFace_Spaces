@@ -1,3 +1,6 @@
+'''
+
+'''
 import asyncio
 import os
 import sys
@@ -8,6 +11,7 @@ import gradio as gr
 import uvicorn
 from a2wsgi import WSGIMiddleware
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "multi_mqtt"))
 
@@ -53,8 +57,7 @@ with gr.Blocks(title="q · 中文语音合成") as demo:
 
 
 port = int(os.environ.get("PORT", "7860"))
-rpc_key = os.environ.get("RPC_KEY", "").strip()
-start_rpc_server(port=port, ip="0.0.0.0", key=rpc_key, globals=globals(), locals=globals(), listen=False)
+start_rpc_server(port=port, ip="0.0.0.0", key="", globals=globals(), locals=globals(), listen=False)
 api = FastAPI()
 
 
@@ -63,20 +66,14 @@ def health():
     return {"ok": True}
 
 
-if rpc_key:
-    def protected_rpc(environ, start_response):
-        environ = environ.copy()
-        path = environ.get("PATH_INFO", "")
-        if path.startswith("/"):
-            environ["PATH_INFO"] = path[1:]
-        return server_http_wsgi.application(environ, start_response)
-
-    api.mount("/rpc", WSGIMiddleware(protected_rpc))
-app = gr.mount_gradio_app(api, demo, path="/")
+api = gr.mount_gradio_app(api, demo, path="/ui")
+api.add_route("/ui", lambda request: RedirectResponse(url="/ui/"), methods=["GET", "HEAD"], include_in_schema=False)
+api.mount("/", WSGIMiddleware(server_http_wsgi.application))
+app = api
 
 
 def main():
-    mqtt_server = MQTTServer(globals=globals(), server_public_key_bytes=PUBLIC_KEY)
+    mqtt_server = MQTTServer(request_topic='q',globals=globals(),server_public_key_bytes=PUBLIC_KEY)
     mqtt_server.mqtt_net.is_windows_cmd = False
     mqtt_server.start(block=False)
     try:
