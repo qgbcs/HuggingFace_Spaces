@@ -1,0 +1,21 @@
+diff --git a/multi_mqtt/multi_mqtt.py b/multi_mqtt/multi_mqtt.py
+--- a/multi_mqtt/multi_mqtt.py
++++ b/multi_mqtt/multi_mqtt.py
+@@
+-            raw_payload = msg.payload.decode('utf-8')
+-            data = process_cipher(raw_payload, decrypt=True, enabled=self.enable_crypto)
++            try:
++                raw_payload = msg.payload.decode('utf-8')
++            except UnicodeDecodeError:
++                logger.debug("忽略非 UTF-8 MQTT 消息 [%s]", host)
++                return
++            if not raw_payload.strip():
++                return
++            try:
++                data = process_cipher(raw_payload, decrypt=True, enabled=self.enable_crypto)
++            except json.JSONDecodeError:
++                logger.debug("忽略空载荷或非 JSON MQTT 消息 [%s]", host)
++                return
+             if not isinstance(data, dict):
+                 logger.warning(f"⚠️ [{host}] 收到无效非字典消息格式，忽略处理")
+                 return

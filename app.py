@@ -10,10 +10,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import gradio as gr
-import uvicorn
 from a2wsgi import WSGIMiddleware
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "multi_mqtt"))
 
@@ -77,7 +74,7 @@ with gr.Blocks(title="q · 中文语音合成") as demo:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app):
     mqtt_server = MQTTServer(request_topic='q', globals=globals(), server_public_key_bytes=PUBLIC_KEY)
     mqtt_server.mqtt_net.is_windows_cmd = False
     try:
@@ -87,24 +84,30 @@ async def lifespan(app: FastAPI):
         await asyncio.to_thread(mqtt_server.mqtt_net.stop)
 
 
-api = FastAPI(lifespan=lifespan)
+# Gradio's own FastAPI server is the only HTTP listener.
+# Do not export a top-level `app` or start Uvicorn separately.
+server = gr.Server()
 
 
-@api.get("/health")
+@server.get("/health")
 def health():
     return {"ok": True}
 
 
-api = gr.mount_gradio_app(api, demo, path="/ui")
-api.add_route("/ui", lambda request: RedirectResponse(url="/ui/"), methods=["GET", "HEAD"], include_in_schema=False)
-api.mount("/", WSGIMiddleware(server_http_wsgi.application))
-app = api
+# Keep the existing HTTP RPC handler; clients should use /rpc/<code>.
+server.mount("/rpc", WSGIMiddleware(server_http_wsgi.application))
 
 
 def main():
     port = int(os.environ.get("GRADIO_SERVER_PORT", os.environ.get("PORT", "7860")))
-    # Gradio SDK runs app.py; this is the only HTTP listener for FastAPI, Gradio and WSGI.
-    uvicorn.run(app, host="0.0.0.0", port=port, workers=1)
+    demo.launch(
+        _app=server,
+        app_kwargs={"lifespan": lifespan},
+        server_name="0.0.0.0",
+        server_port=port,
+        show_error=True,
+        share=False,
+    )
 
 
 if __name__ == "__main__":
