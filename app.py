@@ -6,6 +6,7 @@ import asyncio
 import os
 import sys
 import tempfile
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import gradio as gr
@@ -17,7 +18,6 @@ from fastapi.responses import RedirectResponse
 sys.path.insert(0, str(Path(__file__).resolve().parent / "multi_mqtt"))
 
 import server_http_wsgi
-from server_http import start_rpc_server
 from server_mqtt import MQTTServer
 
 
@@ -78,28 +78,21 @@ with gr.Blocks(title="q · 中文语音合成") as demo:
     generate.click(synthesize, inputs=[text, voice], outputs=audio)
 
 
-port = int(os.environ.get("PORT", "7860"))
-start_rpc_server(port=port, ip="0.0.0.0", key="", globals=globals(), locals=globals(), listen=False)
-api = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    mqtt_server = MQTTServer(request_topic='q', globals=globals(), server_public_key_bytes=PUBLIC_KEY)
+    mqtt_server.mqtt_net.is_windows_cmd = False
+    mqtt_server.start(block=False)
+    yield
+    mqtt_server.mqtt_net.stop()
+
+
+api = FastAPI(lifespan=lifespan)
 
 
 @api.get("/health")
 def health():
     return {"ok": True}
-
-
-@api.on_event("startup")
-def startup_event():
-    global mqtt_server
-    mqtt_server = MQTTServer(request_topic='q', globals=globals(), server_public_key_bytes=PUBLIC_KEY)
-    mqtt_server.mqtt_net.is_windows_cmd = False
-    mqtt_server.start(block=False)
-
-
-@api.on_event("shutdown")
-def shutdown_event():
-    if 'mqtt_server' in globals():
-        mqtt_server.mqtt_net.stop()
 
 
 api = gr.mount_gradio_app(api, demo, path="/ui")
@@ -109,6 +102,7 @@ app = api
 
 
 def main():
+    port = int(os.environ.get("PORT", "7860"))
     uvicorn.run(app, host="0.0.0.0", port=port)
 
 
