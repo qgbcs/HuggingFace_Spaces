@@ -1,9 +1,8 @@
 .env
 .env.*
 !.env.example
-.git
-.git/**
 __pycache__/
 *.py[cod]
-node_modules/
-.next/
+*.mp3
+venv/
+.venv/
