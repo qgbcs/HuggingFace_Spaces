@@ -13,6 +13,7 @@ from pathlib import Path
 import spaces
 import gradio as gr
 from a2wsgi import WSGIMiddleware
+from fastapi import Response
 from fastapi.responses import RedirectResponse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "multi_mqtt"))
@@ -211,7 +212,15 @@ TTS_UI = r"""
   <audio id="qtts-player" controls autoplay preload="auto"
     style="width:100%;margin-top:14px"></audio>
 </div>
-<script>
+<img id="qtts-boot" alt="" style="display:none"
+  src="data:text/plain,boot"
+  onerror="var s=document.createElement('script');s.src='/qtts-ui.js';document.head.appendChild(s);this.remove();">
+"""
+
+# Gradio 6 的 gr.HTML 通过 innerHTML 渲染，内嵌 <script> 不会执行；
+# UI 脚本改由上面的 <img onerror> 引导，从 /qtts-ui.js 动态加载
+#（动态创建并插入的 script 元素正常执行）。
+QTTS_JS = """
 (function () {
   function $(id) { return document.getElementById(id); }
 
@@ -266,7 +275,6 @@ TTS_UI = r"""
     });
   });
 })();
-</script>
 """
 
 with gr.Blocks(title="q · 中文语音合成") as demo:
@@ -305,6 +313,15 @@ def ui_compat():
     return RedirectResponse(url="/")
 
 
+@server.get("/qtts-ui.js", include_in_schema=False)
+def tts_ui_js():
+    return Response(
+        content=QTTS_JS,
+        media_type="text/javascript; charset=utf-8",
+        headers={"Cache-Control": "no-cache"},
+    )
+
+
 # 兼容旧 /rpc/<code> 前缀；新的 RPC 直接在根路径 /<code>（见下面的中间件）。
 server.mount("/rpc", WSGIMiddleware(server_http_wsgi.application))
 
@@ -316,7 +333,7 @@ server.mount("/rpc", WSGIMiddleware(server_http_wsgi.application))
 RESERVED_EXACT = {
     "", "/", "/config", "/config/", "/favicon.ico", "/theme.css", "/robots.txt",
     "/manifest.json", "/login", "/login/", "/logout", "/health", "/ui",
-    "/docs", "/redoc", "/openapi.json",
+    "/docs", "/redoc", "/openapi.json", "/qtts-ui.js",
 }
 RESERVED_PREFIX = (
     "/gradio_api/", "/_app/", "/static/", "/assets/", "/svelte/", "/theme/",
