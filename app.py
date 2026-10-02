@@ -9,8 +9,10 @@ import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import spaces
 import gradio as gr
 from a2wsgi import WSGIMiddleware
+from fastapi.responses import RedirectResponse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "multi_mqtt"))
 
@@ -60,6 +62,17 @@ async def synthesize(text: str, voice: str) -> str:
         return output.name
 
 
+@spaces.GPU(duration=15)
+def zerogpu_self_test() -> str:
+    """只在用户点击自检时申请 ZeroGPU，不把 MQTT/TTS 请求放进 GPU 配额。"""
+    import torch
+
+    value = torch.tensor([1.0, 2.0, 3.0], device="cuda")
+    checksum = torch.dot(value, value).item()
+    device_name = torch.cuda.get_device_name(0)
+    return f"ZeroGPU 可用：{device_name}；CUDA 张量自检结果={checksum:g}"
+
+
 with gr.Blocks(title="q · 中文语音合成") as demo:
     gr.Markdown("# 中文语音合成")
     text = gr.Textbox(label="文本", lines=5, placeholder="输入要朗读的内容")
@@ -71,6 +84,12 @@ with gr.Blocks(title="q · 中文语音合成") as demo:
     generate = gr.Button("生成语音", variant="primary")
     audio = gr.Audio(label="合成结果", type="filepath")
     generate.click(synthesize, inputs=[text, voice], outputs=audio)
+
+    with gr.Accordion("ZeroGPU 自检（仅手动点击时申请 GPU）", open=False):
+        gr.Markdown("MQTT RPC 和 Edge TTS 都在 CPU 上运行；只有点击这个按钮才会申请 ZeroGPU 并消耗少量每日配额。")
+        gpu_test = gr.Button("运行 ZeroGPU 自检")
+        gpu_test_result = gr.Textbox(label="自检结果", interactive=False)
+        gpu_test.click(zerogpu_self_test, inputs=[], outputs=gpu_test_result)
 
 
 @asynccontextmanager
@@ -94,7 +113,12 @@ def health():
     return {"ok": True}
 
 
-# Keep the existing HTTP RPC handler; clients should use /rpc/<code>.
+@server.get("/ui", include_in_schema=False)
+def ui_compat():
+    return RedirectResponse(url="/")
+
+
+# Keep the existing HTTP RPC handler; HTTP clients use /rpc/<code>.
 server.mount("/rpc", WSGIMiddleware(server_http_wsgi.application))
 
 
