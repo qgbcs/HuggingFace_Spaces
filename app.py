@@ -209,8 +209,10 @@ TTS_UI = r"""
     生成语音（自动播放）
   </button>
   <span id="qtts-status" style="margin-left:12px;color:#555"></span>
+  <canvas id="qtts-wave" height="96"
+    style="width:100%;height:96px;margin-top:14px;background:#fafafa;border:1px solid #eee;border-radius:6px"></canvas>
   <audio id="qtts-player" controls autoplay preload="auto"
-    style="width:100%;margin-top:14px"></audio>
+    style="width:100%;margin-top:10px"></audio>
 </div>
 <img id="qtts-boot" alt="" style="display:none"
   src="data:text/plain,boot"
@@ -239,6 +241,93 @@ QTTS_JS = """
     var n = +slider.value;
     return (n >= 0 ? "+" : "") + n + unit;
   }
+
+  // -------- 波形图（恢复第一版 gr.Audio 的波形可视化；canvas 自绘，无外部依赖） --------
+  var wave = $("qtts-wave");
+  var wctx = wave.getContext("2d");
+  var audioCtx = null;
+  var peaks = null;          // 归一化峰值数组
+  var lastChannel = null;    // 保留解码后的声道数据，窗口缩放时重算峰值
+  var rafId = null;
+
+  function sizeCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    var w = wave.clientWidth || 800, h = wave.clientHeight || 96;
+    wave.width = Math.round(w * dpr);
+    wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return {w: w, h: h};
+  }
+
+  function computePeaks(channel) {
+    var cssW = wave.clientWidth || 800;
+    var bars = Math.max(60, Math.floor(cssW / 3));
+    var out = new Array(bars), block = channel.length / bars;
+    for (var i = 0; i < bars; i++) {
+      var start = Math.floor(i * block), end = Math.floor((i + 1) * block);
+      var max = 0;
+      for (var j = start; j < end; j++) {
+        var v = channel[j] < 0 ? -channel[j] : channel[j];
+        if (v > max) max = v;
+      }
+      out[i] = max;
+    }
+    return out;
+  }
+
+  function drawWave() {
+    rafId = null;
+    var size = sizeCanvas();
+    wctx.clearRect(0, 0, size.w, size.h);
+    if (!peaks) return;
+    var bars = peaks.length;
+    var gap = 1, bw = Math.max(1, (size.w - gap * (bars - 1)) / bars);
+    var mid = size.h / 2;
+    var p = $("qtts-player");
+    var progress = (p.duration && p.duration > 0)
+      ? Math.min(1, p.currentTime / p.duration) : 0;
+    for (var i = 0; i < bars; i++) {
+      var barH = Math.max(1.5, peaks[i] * (size.h - 6));
+      wctx.fillStyle = (i / bars) <= progress ? "#f59e0b" : "#c9c9c9";
+      wctx.fillRect(i * (bw + gap), mid - barH / 2, bw, barH);
+    }
+    rafId = requestAnimationFrame(drawWave);
+  }
+
+  function loadWaveform(url) {
+    if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+    peaks = null;
+    lastChannel = null;
+    var size = sizeCanvas();
+    wctx.clearRect(0, 0, size.w, size.h);
+    wctx.font = "13px sans-serif";
+    wctx.fillStyle = "#999";
+    wctx.fillText("波形生成中…", 10, size.h / 2);
+
+    if (!audioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+
+    fetch(url).then(function (resp) { return resp.arrayBuffer(); })
+      .then(function (buf) { return audioCtx.decodeAudioData(buf); })
+      .then(function (audio) {
+        lastChannel = audio.getChannelData(0);
+        peaks = computePeaks(lastChannel);
+        if (rafId !== null) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(drawWave);
+      })
+      .catch(function () {
+        var s2 = sizeCanvas();
+        wctx.clearRect(0, 0, s2.w, s2.h);
+        wctx.fillStyle = "#c0392b";
+        wctx.fillText("波形生成失败（不影响播放）", 10, s2.h / 2);
+      });
+  }
+
+  window.addEventListener("resize", function () {
+    if (lastChannel) peaks = computePeaks(lastChannel);
+  });
 
   $("qtts-btn").addEventListener("click", function () {
     var text = $("qtts-text").value;
@@ -270,6 +359,7 @@ QTTS_JS = """
     player.onended = function () { status.textContent = "播放完成"; };
     player.onerror = function () { status.textContent = "播放出错（可能是合成失败或网络中断）"; };
     player.src = url;
+    loadWaveform(url);   // 独立拉取并解码画波形；不影响音频立刻开播
     player.play().catch(function (e) {
       status.textContent = "浏览器拦截了自动播放，请直接点击播放器：" + e.message;
     });
