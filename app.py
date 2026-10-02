@@ -661,11 +661,20 @@ QTTS_JS = """
   // 解法：任何交互后立刻把焦点移出（鼠标点击/拖动不依赖焦点，功能不受影响），
   // 让后续空格永远落在页面上，由上面的全局捕获处理。
   function releasePlayerFocus() {
-    setTimeout(function () { try { player.blur(); } catch (e) {} }, 0);
+    // 0ms 兜普通点击；200ms 兜按住时间轴拖动（mousedown 默认聚焦发生在事件派发后）
+    [0, 200].forEach(function (ms) {
+      setTimeout(function () {
+        try { if (document.activeElement === player) player.blur(); } catch (e) {}
+      }, ms);
+    });
   }
   on(player, "pointerdown", releasePlayerFocus);
   on(player, "click", releasePlayerFocus);
-  on(player, "focus", releasePlayerFocus);
+  // 焦点进入 UA shadow 时 focus 事件在部分 WebView 不触发；focusin 会冒泡，
+  // document 捕获阶段再守一道（键盘 Tab 聚焦等场景）
+  on(document, "focusin", function () {
+    if (document.activeElement === player) releasePlayerFocus();
+  }, true);
 
   // ---------- 合成代码与任务生命周期 ----------
   function buildCode(text) {
