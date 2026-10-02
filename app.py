@@ -142,6 +142,15 @@ async def synthesize(text: str, voice: str, **ka) -> str:
         return output.name
 
 
+# HTTP RPC（根路径 / 与旧 /rpc）的持久命名空间在导入 server_http_wsgi
+# 时就已建好，默认只含该模块自身的 globals；把本模块的 tts 等显式注入，
+# 才能支持 /await tts('...',response=response) 这种直接调用。
+server_http_wsgi.RPCRequestHandler.executor.globals_dict.update({
+    "tts": tts,
+    "synthesize": synthesize,
+})
+
+
 @spaces.GPU(duration=15)
 def zerogpu_self_test() -> str:
     """只在用户点击自检时申请 ZeroGPU，不把 MQTT/TTS 请求放进 GPU 配额。"""
