@@ -7,6 +7,8 @@ import os
 import re
 import sys
 import tempfile
+import threading
+from collections import OrderedDict
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -70,6 +72,32 @@ def _normalize_pitch(value) -> str:
     return text[:-2] + ("Hz" if match.group(1).lower() == "hz" else "st")
 
 
+# ---------------------------------------------------------------------------
+# TTS 音频内存缓存
+# ---------------------------------------------------------------------------
+# 播放中拖动进度条会触发 HTTP Range 请求；为避免每次 seek 都重新合成一遍，
+# 把完成的 mp3 按「文本+发音人+规范化参数」缓存，Range 请求从缓存切片返回。
+_TTS_CACHE = OrderedDict()          # key -> bytes
+_TTS_CACHE_MAX = 64
+_TTS_CACHE_LOCK = threading.Lock()
+
+
+def _tts_cache_get(key):
+    with _TTS_CACHE_LOCK:
+        data = _TTS_CACHE.get(key)
+        if data is not None:
+            _TTS_CACHE.move_to_end(key)
+        return data
+
+
+def _tts_cache_put(key, data):
+    with _TTS_CACHE_LOCK:
+        _TTS_CACHE[key] = data
+        _TTS_CACHE.move_to_end(key)
+        while len(_TTS_CACHE) > _TTS_CACHE_MAX:
+            _TTS_CACHE.popitem(last=False)
+
+
 async def tts(text: str, voice: str = 'zh-CN-YunxiNeural', fmt="mp3",
               response=None, **ka) -> bytes:
     '''
@@ -114,6 +142,20 @@ async def tts(text: str, voice: str = 'zh-CN-YunxiNeural', fmt="mp3",
     if ka:
         raise TypeError(f"tts 不支持的参数：{sorted(ka)}")
 
+    # 只有这些参数影响音频内容；proxy/connector/boundary 不进缓存键。
+    cache_key = (
+        fmt, text, voice,
+        options.get("rate", "+0%"),
+        options.get("volume", "+0%"),
+        options.get("pitch", "+0Hz"),
+    )
+    cached = _tts_cache_get(cache_key)
+    if cached is not None:
+        if response is not None:
+            response.set_header("Content-Type", "audio/mpeg")
+            response.write(cached)
+        return cached
+
     comm = edge_tts.Communicate(text, voice, **options)
     buf = b""
     if response is not None:
@@ -129,6 +171,7 @@ async def tts(text: str, voice: str = 'zh-CN-YunxiNeural', fmt="mp3",
             response.write(data)
     if not buf:
         raise RuntimeError("edge-tts 未返回任何音频（参数或发音人不被接受）")
+    _tts_cache_put(cache_key, buf)
     if response is not None and not getattr(response, "_streamed", False):
         response.set_data(buf)
     return buf
