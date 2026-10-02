@@ -129,6 +129,10 @@ def main():
         app_kwargs={"lifespan": lifespan},
         server_name="0.0.0.0",
         server_port=port,
+        # HF 注入 GRADIO_SSR_MODE=true；但 Node SSR 代理只转发 /config、
+        # /gradio_api/* 等内建路径，会吞掉自定义的 /health、/ui、/rpc。
+        # 显式关闭 SSR，让 Python uvicorn 直接监听 7860。
+        ssr_mode=False,
         show_error=True,
         share=False,
     )

@@ -28,7 +28,7 @@ README 顶部保留 `sdk: gradio`、`sdk_version`、`python_version` 和 `app_fi
 
 ## 端口、SSR 与测试地址
 
-Gradio 6 可能显示 `0.0.0.0:7860, with SSR (Node proxy -> Python :7861)`。这是正常的：Node 代理监听外部 Space 端口 `7860`，Python Gradio 后端使用内部端口 `7861`。这不是重复绑定，不要再启动 Uvicorn，也不要额外调用第二个 `demo.launch()`。
+`app.py` 在 `demo.launch()` 中显式设置 `ssr_mode=False`：HF 运行环境默认注入 `GRADIO_SSR_MODE=true`，日志会显示 `with SSR (Node proxy -> Python :7861)`，但 Node SSR 代理只把 `/config`、`/gradio_api/*` 等 Gradio 内建路径转发给 Python，自定义顶层路由（`/health`、`/ui`、`/rpc`）会被 SvelteKit 页面吞掉（返回 HTML 而不是 JSON/重定向）。关闭 SSR 后由 Python uvicorn 直接监听 Space 端口 `7860`，自定义路由才可达。仍然只保留一个 `demo.launch()`，不要额外启动 Uvicorn。
 
 - Gradio UI 首页：`https://<用户名>-<space名>.hf.space/`
 - `/ui`：兼容旧 URL，重定向到 `/`
@@ -63,7 +63,7 @@ print(result)
 ## 日志说明
 
 - `No @spaces.GPU function detected during startup`：选择的是 ZeroGPU，但代码没有 GPU 回调；本版自检按钮提供实际的按需 GPU 回调。
-- `address already in use`：只保留本文件 `app.py` 中的一个 `demo.launch()`；删除 Dockerfile/额外启动命令。SSR 的 Node `7860` → Python `7861` 是正常的。
+- `address already in use`：只保留本文件 `app.py` 中的一个 `demo.launch()`；删除 Dockerfile/额外启动命令。本 Space 用 `ssr_mode=False`，由 Python 直接监听 `7860`，不经过 Node 代理。
 - `Expecting value: line 1 column 1`：公共 MQTT broker 收到空载荷或非 JSON 消息，与 HTTP 端口无关。需要过滤时，可应用 `mqtt_non_json.patch`。
 
 ZeroGPU 和免费 Space 有额度、休眠与重启限制；不保证 MQTT 长连接或生产 RPC SLA。
