@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
-from multi_mqtt import MultiMQTTManager, get_req_id, utc_ms, get_standard_pem_bytes,get_duplicated_kargs
 import argparse,time,threading,os, sys, logging, codeop, importlib,builtins as _builtins
+
+# 本模块已迁移到 client/ 子目录：把项目根目录与本目录加入 sys.path，
+# 同时兼容「python client/client_mqtt.py」直接运行与「from client import ...」包导入。
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _p in (os.path.dirname(_HERE), _HERE):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+from multi_mqtt import MultiMQTTManager, get_req_id, utc_ms, get_standard_pem_bytes,get_duplicated_kargs
 
 logger = logging.getLogger(__file__)
 from server_mqtt import REQUEST_TOPIC, DEFAULT_REPLY_TOPIC as REPLY_TOPIC
@@ -22,6 +30,21 @@ alias_help         =('help','h','?')
 alias_exit         =('exit', 'quit')
 alias_timeout      =('timeout','time','wait','second','sec')
 
+def _cli_opts(*names):
+    """从别名生成 argparse 选项：自动加 --/- 前缀，_ 与 - 都支持；单字符只出 -x。
+
+    模块级唯一实现，client_mqtt 自己的 CLI 以及 cmd_client_mqtt /
+    pty_client_mqtt 的连接参数都通过它 + 上面的 alias_xxx 别名表生成，
+    保证三处（rpc(**ka) / CLI / %magic）参数名永远一致。
+    """
+    out, seen = [], set()
+    for n in names:
+        for f in (n, n.replace('_', '-')):
+            for c in (('-' + f,) if len(f) == 1 else ('--' + f, '-' + f)):
+                if c not in seen:
+                    seen.add(c); out.append(c)
+    return out
+
 _default_client = None
 _default_client_lock = threading.Lock()
 
@@ -35,9 +58,17 @@ class MQTTClientNode:
         self.lock = threading.Lock()
         self._subscribed_topics = set()
 
-    def start(self):
+    def start(self, connect_timeout=10.0):
         self.mqtt_net.start()
-        time.sleep(2)
+        # 不再写死 sleep(2)：等第一个 broker 一连上就继续（实测最快约
+        # 0.1s）；全部连不上时最多等到超时，随后台重连继续往下走，
+        # 由后续请求自身的超时决定成败。
+        online = self.mqtt_net.wait_connected(
+            min_count=1, timeout=connect_timeout)
+        if online <= 0:
+            logger.warning(
+                "启动后 %.0fs 内没有任何 broker 连接成功，继续尝试"
+                "（paho 会在后台自动重连）", connect_timeout)
         self._subscribe_once(REPLY_TOPIC)
 
     def _subscribe_once(self, topic):
@@ -542,16 +573,6 @@ def _fallback_code_input():
         prompt = "... "
 
 if __name__ == "__main__":
-    def _cli_opts(*names):
-        """从别名生成 argparse 选项：自动加 --/- 前缀，_ 与 - 都支持；单字符只出 -x。"""
-        out, seen = [], set()
-        for n in names:
-            for f in (n, n.replace('_', '-')):
-                for c in (('-' + f,) if len(f) == 1 else ('--' + f, '-' + f)):
-                    if c not in seen:
-                        seen.add(c); out.append(c)
-        return out
-
     parser = argparse.ArgumentParser(description="MQTT RPC client")
     parser.add_argument(
         *_cli_opts(*alias_private_key),
@@ -570,12 +591,12 @@ if __name__ == "__main__":
     parser.add_argument(
         *_cli_opts(*alias_request_topic),
         type=str, default=REQUEST_TOPIC, dest="request_topic",
-        help=f"REPL 起始 request_topic（默认 {REQUEST_TOPIC}）；运行中可用 %topic 切换。",
+        help=f"REPL 起始 request_topic（默认 {REQUEST_TOPIC}）；运行中可用 %%topic 切换。",
     )
     parser.add_argument(
         *_cli_opts(*alias_reply_topic),
         type=str, default=REPLY_TOPIC, dest="reply_topic",
-        help=f"REPL 起始 reply_topic（默认 {REPLY_TOPIC}）；运行中可用 %reply 切换。",
+        help=f"REPL 起始 reply_topic（默认 {REPLY_TOPIC}）；运行中可用 %%reply 切换。",
     )
     parser.add_argument(
         *_cli_opts(*alias_history),
