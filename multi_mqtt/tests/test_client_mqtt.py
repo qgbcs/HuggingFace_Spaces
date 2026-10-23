@@ -4,17 +4,82 @@ import sys
 import threading
 import time
 import unittest
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import ecdsa
 
 from client import client_mqtt
 from multi_mqtt import MultiMQTTManager, get_standard_pem_bytes
 
 
 class ClientMqttTests(unittest.TestCase):
+    def test_request_waits_for_minimum_brokers_and_checks_publish_count(self):
+        node = client_mqtt.MQTTClientNode()
+        calls = []
+
+        class _FakeNet:
+            client_private_key_bytes = None
+
+            def wait_connected(self, min_count, timeout):
+                calls.append(("wait", min_count, timeout))
+                return min_count
+
+            def publish_broadcast(self, topic, payload, **_kwargs):
+                calls.append(("publish", topic))
+                node._on_message(
+                    client_mqtt.REPLY_TOPIC,
+                    {"req_id": payload["req_id"], "ok": True},
+                    "broker-test",
+                )
+                return 5
+
+        node.mqtt_net = _FakeNet()
+        response = node.request("3", timeout=0.2, min_broker_count=5)
+
+        self.assertTrue(response["ok"])
+        self.assertEqual(calls, [
+            ("wait", 5, 0.2),
+            ("publish", client_mqtt.REQUEST_TOPIC),
+        ])
+
+    def test_request_does_not_publish_when_minimum_brokers_are_unavailable(self):
+        node = client_mqtt.MQTTClientNode()
+        published = []
+
+        class _FakeNet:
+            client_private_key_bytes = None
+
+            def wait_connected(self, min_count, timeout):
+                return min_count - 1
+
+            def publish_broadcast(self, *_args, **_kwargs):
+                published.append(True)
+
+        node.mqtt_net = _FakeNet()
+        response = node.request("3", timeout=0.01, min_broker_count=5)
+
+        self.assertEqual(response, {})
+        self.assertEqual(published, [])
+
+    def test_request_does_not_wait_for_response_if_publish_count_is_too_low(self):
+        node = client_mqtt.MQTTClientNode()
+
+        class _FakeNet:
+            client_private_key_bytes = None
+
+            def wait_connected(self, min_count, timeout):
+                return min_count
+
+            def publish_broadcast(self, *_args, **_kwargs):
+                return 4
+
+        node.mqtt_net = _FakeNet()
+        response = node.request("3", timeout=0.01, min_broker_count=5)
+
+        self.assertEqual(response, {})
+        self.assertEqual(node.pending_requests, {})
+
     def test_fallback_input_ignores_invalid_python(self):
         answers = [
             "/workspaces/build_xime_home/git.py push https://example.com/repo -m",
@@ -55,26 +120,46 @@ class ClientMqttTests(unittest.TestCase):
         self.assertFalse(event.set.called)
         self.assertIsNone(node.pending_requests["req-123"]["response"])
 
-    def test_signed_request_is_accepted_when_server_pubkey_is_known(self):
-        server_key = ecdsa.SigningKey.generate(curve=ecdsa.NIST256p).verifying_key.to_pem()
-        node = client_mqtt.MQTTClientNode(
-            client_private_key_bytes="2333",
-            server_public_key_bytes=server_key,
-        )
+    def test_late_duplicate_response_goes_to_extras_without_overwriting_first(self):
+        # 旧协议里客户端节点持有 server_public_key_bytes；现协议客户端不再保存
+        # 服务端公钥（公钥只在服务端侧验客户端请求签名），"服务端已验签"由
+        # 回包 req_id 不带签名后缀（干净 req_id）表示，该接受路径已由
+        # test_signed_request_is_accepted_when_response_req_id_is_clean 覆盖。
+        # 本用例改测多应答者仲裁：首包落定后，持相同 key 的其他服务端的迟到
+        # 同 req_id 回包必须进 extras，不得覆盖首包。
+        node = client_mqtt.MQTTClientNode(client_private_key_bytes="2333")
         event = Mock()
-        req_id = "req-123|deadbeef"
-        node.pending_requests["req-123"] = {
+        req_id = "req-123"
+        ctx = {
             "event": event,
             "start_time": 0.0,
             "response": None,
+            "extras": [],
             "client_private_key_bytes": "1+1",
             "allow_no_server_pubkey_response": False,
         }
+        node.pending_requests[req_id] = ctx
 
-        node._on_message("sys/device/response", {"req_id": req_id, "ok": True}, "mqtt.emqx.io")
+        node._on_message(
+            "sys/device/response",
+            {"req_id": req_id, "ok": True, "node": "first"},
+            "mqtt.emqx.io",
+        )
+        first = ctx["response"]
+        self.assertEqual(first["node"], "first")
+        self.assertEqual(event.set.call_count, 1)
 
-        self.assertTrue(event.set.called)
-        self.assertEqual(node.pending_requests["req-123"]["response"]["req_id"], "req-123")
+        node._on_message(
+            "sys/device/response",
+            {"req_id": req_id, "ok": True, "node": "late"},
+            "broker.emqx.io",
+        )
+
+        self.assertIs(ctx["response"], first, "迟到回包不能覆盖首包")
+        self.assertEqual(len(ctx["extras"]), 1)
+        self.assertEqual(ctx["extras"][0]["node"], "late")
+        self.assertEqual(ctx["extras"][0]["req_id"], req_id)
+        self.assertEqual(event.set.call_count, 1, "迟到回包不应再次 set 事件")
 
     def test_signed_request_is_accepted_when_response_req_id_is_clean(self):
         node = client_mqtt.MQTTClientNode(
@@ -137,13 +222,6 @@ class ClientMqttTests(unittest.TestCase):
         )
 
         self.assertTrue(node.pending_requests[req_id]["response"]["req_id"] == "req-999")
-
-    def test_request_interrupt_returns_none_cleanly(self):
-        node = client_mqtt.MQTTClientNode(client_private_key_bytes="2333")
-        node.mqtt_net.publish_broadcast = Mock(side_effect=RuntimeError("boom"))
-
-        result = node.request("print(1)", timeout=0.1)
-        self.assertIsNone(result)
 
 
 class WaitConnectedTests(unittest.TestCase):
@@ -211,6 +289,28 @@ class WaitConnectedTests(unittest.TestCase):
         online = mgr.wait_connected(min_count=1, timeout=0.2,
                                     poll_interval=0.02)
         self.assertEqual(online, 1)
+
+
+class PublishBroadcastTests(unittest.TestCase):
+    def test_returns_number_of_brokers_that_accepted_publish(self):
+        class _FakeClient:
+            def __init__(self, rc):
+                self.rc = rc
+
+            def is_connected(self):
+                return True
+
+            def publish(self, *_args, **_kwargs):
+                return SimpleNamespace(rc=self.rc)
+
+        mgr = MultiMQTTManager(brokers=[], enable_stats=False)
+        mgr.clients = {
+            "accepted": _FakeClient(0),
+            "rejected": _FakeClient(15),
+            "also-accepted": _FakeClient(0),
+        }
+
+        self.assertEqual(mgr.publish_broadcast("topic", {"value": 1}), 2)
 
 
 if __name__ == "__main__":

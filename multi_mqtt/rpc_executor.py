@@ -27,17 +27,29 @@ class PythonExecutor:
     参数；``locals_dict`` 在内部作为别名存在，以便两个名字都可被内省 /
     兼容使用。
 
+    命名空间拷贝策略（``copy_globals``）
+    ----------------------------------
+    默认 ``copy_globals=False``：执行器**直接持有**调用方传入的字典引用，
+    不做任何拷贝。调用方在外部对该字典新增 / 修改的名字（例如启动后才
+    赋值的服务端实例）在后续 RPC 中实时可见。MQTT 通道依赖这一语义。
+
+    仅当显式传 ``copy_globals=True`` 时，才对传入字典做一次**浅拷贝**
+    （``dict(globals)``），执行器此后与调用方字典彻底脱钩，等价于服务
+    启动时拍一张快照。HTTP 通道若需要请求间与调用方 globals 隔离，可
+    显式开启；注意浅拷贝只复制顶层键，可变对象仍是共享引用。
+
     ipy 中可以验证 globals() == locals()
     Out[11]: True
 
     如果要在函数内部 调用 PythonExecutor 执行时绕过共享命名空间，可以直接赋值 ``self.locals_dict``。
     """
 
-    def __init__(self, globals=None, main_loop=None):
-        # 若调用方提供了字典，则直接使用它，这样外部对它的修改依然可见；
-        # 否则新建一个空字典。
+    def __init__(self, globals=None, main_loop=None, copy_globals=False):
+        # 默认零拷贝：直接持有调用方字典，外部对它的修改实时可见
+        # （server_mqtt 通道依赖此行为，启动后才创建的 gms 等名字必须可见）。
+        # 仅在 copy_globals=True 时浅拷贝一次，与调用方字典脱钩形成快照。
         if globals is not None:
-            self.globals_dict = globals
+            self.globals_dict = dict(globals) if copy_globals else globals
         else:
             self.globals_dict = {}
 
@@ -53,7 +65,7 @@ class PythonExecutor:
     # 公开 API
     # ------------------------------------------------------------------ #
 
-    def execute(self, code, globals=None):
+    def execute(self, code,globals=None,format_result=False):
         """执行 ``code``。
 
         ``globals`` 若提供，应是一个包含**请求级**上下文变量的映射。
@@ -83,6 +95,10 @@ class PythonExecutor:
                 try:
                     with _redirect_stdout(output):
                         result = self._execute(code)
+                    if format_result: #让 r始终是 str 对象
+                        # 参数名 format_result 遮蔽了模块级同名函数，经 sys.modules 取原函数；
+                        # 非 JSON 可序列化对象（如 sys 模块）在此统一转为字符串
+                        result = sys.modules[__name__].format_result(result)
                     return {
                         "r": result,
                         "stdout": output.getvalue(),
@@ -222,19 +238,38 @@ class _redirect_stdout:
         sys.stdout = self.previous
 
 
-def format_result(value):
-    if isinstance(value, str):
-        return value
+def format_result(obj, width=120):
+    if isinstance(obj, str):
+        return obj
     try:
-        import importlib
-        pretty = importlib.import_module("IPython.lib.pretty").pretty
-        return pretty(value, max_width=120)
+        from IPython.lib.pretty import pretty
+        return pretty(obj, max_width=width)
     except ImportError:
         try:
             from pprint import pformat
-            return pformat(value, width=120)
-        except ImportError:
-            return repr(value)
+            return pformat(obj, width=width)
+        except Exception:
+            return repr(obj)
+
+import time
+def stime(ms=0, format='%Y-%m-%d__%H.%M.%S', ms_splitor='__.'):
+    """可读毫秒级时间戳。ms 传整数毫秒；不传则取当前 UTC 毫秒。"""
+    if not ms:
+        ms = utc_ms()
+    elif isinstance(ms, float) and ms < 1e11:
+        # 看起来是 time.time() 的秒级浮点，转成整数毫秒
+        ms = round(ms * 1000)
+    else:
+        ms = int(ms)
+    sec, milli = divmod(ms, 1000)
+    
+    if ms_splitor:ms_splitor=ms_splitor + f"{milli:03d}"
+    return time.strftime(format, time.localtime(sec)) + ms_splitor
+
+def utc_ms():
+    """Return the current UTC Unix timestamp in integer milliseconds."""
+    return time.time_ns() // 1_000_000
+            
 
 def http_import(url, save_to=''): # 定义核心导入函数
     import urllib.request, zipfile, io, sys, importlib, importlib.abc, importlib.machinery, os # 导入必要标准库
