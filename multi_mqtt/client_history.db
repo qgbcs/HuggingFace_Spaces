@@ -1,0 +1,1038 @@
+
+# 2026-09-19 22:44:15.875456
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-19 22:44:41.880303
++%a
+
+# 2026-09-19 22:44:50.198104
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-19 22:49:36.518357
++%k 2
+
+# 2026-09-19 22:49:39.767163
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-19 22:49:45.928850
++%a 1
+
+# 2026-09-19 22:49:50.204502
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-19 22:50:15.212597
++def a():return a
++a()
+
+# 2026-09-19 22:55:18.356423
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 11:36:17.753409
++1
+
+# 2026-09-22 11:36:26.068615
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 11:37:12.138164
++%
+
+# 2026-09-22 11:37:15.534390
++%h
+
+# 2026-09-22 11:39:31.697067
++%s
+
+# 2026-09-22 11:40:44.025901
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 11:44:22.036530
++%s
+
+# 2026-09-22 11:47:50.973238
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 11:47:54.162488
++%s
+
+# 2026-09-22 12:21:43.928001
++%t sys/device/14c
+
+# 2026-09-22 12:21:47.408787
++1
+
+# 2026-09-22 12:22:10.180103
++%t sys/device/k12
+
+# 2026-09-22 12:22:16.996851
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 12:22:28.829885
++%k 2**128
+
+# 2026-09-22 12:22:31.983174
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 12:23:40.074401
++%t sys/device/request
+
+# 2026-09-22 12:23:43.424679
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 12:23:58.164872
++%a 1
+
+# 2026-09-22 12:24:01.770205
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 12:24:49.832572
++%s
+
+# 2026-09-22 12:28:57.303696
++%key
+
+# 2026-09-22 12:31:21.898043
++%k
+
+# 2026-09-22 12:31:30.832942
++%k 2**128
+
+# 2026-09-22 12:31:35.679869
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 12:31:42.389352
++%a 1
+
+# 2026-09-22 12:31:44.870336
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 12:32:59.200445
++dir(platform)
+
+# 2026-09-22 12:33:03.036979
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-22 12:33:05.680886
++dir(platform)
+
+# 2026-09-22 12:33:30.188128
++platform.os
+
+# 2026-09-22 12:33:55.893782
++platform.system()
+
+# 2026-09-22 12:36:03.095172
++r=(3
++)
+
+# 2026-09-22 12:42:11.259991
++%h
+
+# 2026-09-23 02:03:52.643315
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-23 03:05:45.074007
++ 
+
+# 2026-09-23 07:06:23.299116
++%t sys/device/14c
+
+# 2026-09-23 07:06:25.457148
++1
+
+# 2026-09-23 07:10:39.400806
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-23 07:11:12.712486
++from com.chaquo.python import Python
++from android.content import Context
++from android.net.wifi import WifiManager
++from android.text.format import Formatter
+
+# 2026-09-23 07:11:17.950456
++appctx = Python.getPlatform().getApplication()
++wm = appctx.getSystemService(Context.WIFI_SERVICE)
++wi = wm.getConnectionInfo()
++ssid = wi.getSSID()
++if ssid:
++    ssid = ssid.strip('"')
++r = {
++    "wifi": {
++        "ssid": ssid,
++        "bssid": str(wi.getBSSID()) if wi.getBSSID() else None,
++        "rssi": wi.getRssi(),
++        "link_speed": wi.getLinkSpeed(),
++        "frequency": wi.getFrequency(),
++        "ip": Formatter.formatIpAddress(wi.getIpAddress()),
++        "mac": str(wi.getMacAddress()) if wi.getMacAddress() else None,
++    }
++}
+
+# 2026-09-23 07:12:05.352896
++sys
+
+# 2026-09-23 07:12:12.554789
++sys.executor
+
+# 2026-09-23 07:13:09.932819
++sys.excutable
+
+# 2026-09-23 07:13:24.930939
++sys.executable
+
+# 2026-09-23 07:14:18.891728
++subprocess.check_call
+
+# 2026-09-23 07:14:55.622069
++import subprocess
++subprocess.check_call([sys.executable,'-V'])
+
+# 2026-09-23 07:17:38.304228
++sys.path
+
+# 2026-09-23 07:19:47.151661
++import aliyun_git
+
+# 2026-09-23 07:19:55.457310
++F
+
+# 2026-09-23 07:20:18.620459
++os.listdir('/data/data/com.qgb.xime/files/chaquopy/AssetFinder/app')
+
+# 2026-09-23 07:20:26.352397
++sys.path
+
+# 2026-09-23 11:44:39.412029
++%s
+
+# 2026-09-23 11:44:44.336393
++1
+
+# 2026-09-23 11:45:35.929499
++%t sys/device/bjhtw
+
+# 2026-09-23 11:45:39.171170
++1
+
+# 2026-09-23 11:46:02.087253
++%t sys/device/lgz
+
+# 2026-09-23 11:46:03.551800
++1
+
+# 2026-09-24 03:09:59.267560
++3
+
+# 2026-09-24 03:10:12.477214
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 03:10:21.165366
++%s
+
+# 2026-09-24 03:12:13.620036
++%a
+
+# 2026-09-24 03:12:19.006820
++%a 1
+
+# 2026-09-24 03:12:31.404251
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 03:15:17.977394
++%s
+
+# 2026-09-24 03:15:24.336905
++%t sys/device/
++14c
+
+# 2026-09-24 03:15:31.408363
++%t sys/device/14c
+
+# 2026-09-24 03:15:40.429811
++1
+
+# 2026-09-24 03:16:12.317685
++%t sys/device/request
+
+# 2026-09-24 03:16:16.440828
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 03:16:52.749816
++%s
+
+# 2026-09-24 03:21:11.642642
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 03:22:43.023226
++%t sys/device/k12
+
+# 2026-09-24 03:25:48.512169
++%k 2**128
+
+# 2026-09-24 03:25:53.457043
++%t sys/device/k12
+
+# 2026-09-24 03:26:11.894495
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 03:26:51.389473
++dir()
+
+# 2026-09-24 03:27:29.941421
++mqtt_server
+
+# 2026-09-24 03:27:48.701830
++mqtt_server.mqtt_net
+
+# 2026-09-24 03:27:59.221727
++mqtt_server.mqtt_net.get_report()
+
+# 2026-09-24 03:28:12.727822
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-09-24 03:28:35.366017
++%s
+
+# 2026-09-24 03:29:21.579950
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-24 04:29:20.239954
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 04:29:30.411912
++%t sys/device/request
+
+# 2026-09-24 04:29:33.365024
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 04:29:42.767798
++%a 1
+
+# 2026-09-24 04:29:45.769690
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 04:29:55.414818
++%a 0
+
+# 2026-09-24 04:29:58.772187
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 04:30:18.222258
++%s
+
+# 2026-09-24 04:38:35.370415
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 06:37:05.886378
++%k 2**128
+
+# 2026-09-24 06:37:09.375992
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 06:37:18.025470
++%sec 2
+
+# 2026-09-24 06:37:22.189446
++%s
+
+# 2026-09-24 06:37:45.123829
++%sec 3=
+
+# 2026-09-24 06:38:21.586144
++%sec 332
+
+# 2026-09-24 06:38:45.372758
++%s
+
+# 2026-09-24 06:38:49.936170
++%time 432
+
+# 2026-09-24 06:38:52.440231
++%s
+
+# 2026-09-24 06:39:06.391379
++%time 0.3
+
+# 2026-09-24 06:39:11.421602
++%s
+
+# 2026-09-24 06:39:22.341952
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 06:39:36.612100
++import platform;platform.node(),platform.machine(),platform.release(),dir()
+
+# 2026-09-24 06:39:48.543791
++import platform;platform.node(),platform.machine(),platform.release(),time
+
+# 2026-09-24 06:40:03.813551
++import platform;platform.node(),platform.machine(),platform.release(),time.sleep(1)
+
+# 2026-09-24 06:40:47.766002
++%time 33
+
+# 2026-09-24 06:40:49.923065
++import platform;platform.node(),platform.machine(),platform.release(),time.sleep(1)
+
+# 2026-09-24 06:41:03.418344
++%t sys/device/bjhtw
+
+# 2026-09-24 06:41:05.060640
++32
+
+# 2026-09-24 06:41:16.953984
++%t sys/device/lgz
+
+# 2026-09-24 06:41:18.462050
++32
+
+# 2026-09-24 06:41:30.303736
++%t sys/device/14c
+
+# 2026-09-24 06:41:31.821367
++3
+
+# 2026-09-24 06:41:37.783018
++%t sys/device/request
+
+# 2026-09-24 06:41:56.370412
++import platform;platform.node(),
++platform.machine(),platform.release()
+
+# 2026-09-24 06:42:06.270171
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 06:42:20.422511
++%a
+
+# 2026-09-24 06:42:29.860250
++%a 1
+
+# 2026-09-24 06:42:34.581582
++%t sys/device/bjhtw
+
+# 2026-09-24 06:42:38.838051
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 06:42:49.070792
++%t sys/device/request
+
+# 2026-09-24 06:53:46.330186
++%t sys/device/k12
+
+# 2026-09-24 06:53:48.561866
++1
+
+# 2026-09-24 07:00:29.452075
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-24 07:01:59.294533
++1
+
+# 2026-09-24 07:02:25.274211
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-24 07:03:03.339354
++dir()
+
+# 2026-09-24 07:03:38.686596
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-24 07:04:53.495059
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 07:06:15.256255
++09
+
+# 2026-09-24 07:06:35.885365
++import platform;platform.node(),platform.machine(),platform.release()
+
+# 2026-09-24 09:28:13.736796
++1
+
+# 2026-09-24 09:29:29.268955
++%t sys/device/request
+
+# 2026-09-24 09:29:40.497633
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-09-24 09:30:28.955899
++%t sys/device/k12
+
+# 2026-09-24 09:30:32.765905
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-09-24 09:32:06.404409
++import aliyun_gi
+
+# 2026-09-24 09:32:10.082471
++import aliyun_git
+
+# 2026-09-24 09:33:17.646874
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-09-24 09:33:34.229688
++import os, time, json, base64, hashlib, requests, sys
+
+# 2026-09-24 09:33:53.000954
++requests.get('http://192.168.1.100:1122/r=U.stime()')
+
+# 2026-09-24 10:26:55.022622
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-09-24 10:27:15.965043
++%s
+
+# 2026-09-24 10:27:21.951818
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-09-24 10:28:25.761639
++import aliyun_git
+
+# 2026-09-24 12:29:57.050232
++1
+
+# 2026-09-24 22:07:01.734765
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-09-24 22:07:15.324411
++%s
+
+# 2026-09-24 23:00:32.995691
++1
+
+# 2026-09-25 08:26:02.635021
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-09-25 11:41:21.203605
++dir()
+
+# 2026-09-25 11:41:35.045674
++import aliyun_git
+
+# 2026-09-25 11:42:34.578629
++aliyun_git.upload
+
+# 2026-09-26 14:38:09.929090
++%t sys/device/bjhtw
+
+# 2026-09-26 14:38:11.603633
++1
+
+# 2026-09-26 14:38:35.574682
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-26 14:53:16.717960
++1
+
+# 2026-09-26 14:58:15.991279
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-26 16:54:09.682372
++1
+
+# 2026-09-26 19:17:02.593098
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-09-26 19:17:11.610536
++%s
+
+# 2026-09-26 19:17:21.330870
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-26 20:33:22.530948
++%t sys/device/request
+
+# 2026-09-26 20:33:23.954537
++1
+
+# 2026-09-26 20:33:43.875097
++os.listdir('/data/data/com.qgb.xime/files/chaquopy/AssetFinder/app')
+
+# 2026-09-26 20:33:50.830983
++import os, time, json, base64, hashlib, requests, sys
+
+# 2026-09-26 20:34:03.502447
++import os, time, json, base64, hashlib,  sys
+
+# 2026-09-26 20:34:06.439592
++os.listdir('/data/data/com.qgb.xime/files/chaquopy/AssetFinder/app')
+
+# 2026-09-26 20:34:15.000098
++os.listdir('/data/data/com.qgb.xime/files/
++')
+
+# 2026-09-26 20:34:22.655374
++os.listdir('/data/data/com.qgb.xime/files/')
+
+# 2026-09-26 20:34:31.888494
++os.listdir('/sdcard')
+
+# 2026-09-26 21:31:04.579668
++%t sys/device/request
+
+# 2026-09-26 21:31:08.333633
++%t sys/device/bjhtw
+
+# 2026-09-26 21:31:19.775750
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-26 21:31:58.844345
++%t sys/device/request
+
+# 2026-09-26 21:32:02.392024
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-26 21:46:52.950631
++2
+
+# 2026-09-27 00:32:38.891297
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-27 19:13:43.233981
++%t sys/device/14c
+
+# 2026-09-27 19:13:44.505822
++1
+
+# 2026-09-27 19:14:04.925269
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-09-27 19:14:12.899376
++mqtt_server.mqtt_net.stats.get_report(
++)
+
+# 2026-09-27 19:24:08.059714
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-09-27 19:36:17.088042
++0
+
+# 2026-09-27 19:38:14.077418
++%s
+
+# 2026-09-28 13:39:37.174398
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-09-28 14:14:40.284078
++1
+
+# 2026-09-28 14:14:58.596852
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-09-29 11:26:34.990020
++1
+
+# 2026-09-29 13:40:30.828290
++2
+
+# 2026-09-29 16:22:19.272922
++%t sys/device/14c
+
+# 2026-09-29 16:22:20.465763
++1
+
+# 2026-09-29 16:24:24.193060
++22-17.5
+
+# 2026-09-30 15:05:43.857358
++1
+
+# 2026-09-30 19:26:30.180833
++0
+
+# 2026-09-30 23:32:54.819791
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-10-01 00:00:06.261531
++%t sys/device/k12
+
+# 2026-10-01 00:00:07.510112
++1
+
+# 2026-10-01 00:00:25.031089
++%k 2**128
+
+# 2026-10-01 00:00:26.327276
++1
+
+# 2026-10-01 00:00:41.352772
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-10-01 00:01:20.518825
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 00:01:57.435418
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-10-01 00:02:40.492995
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-10-01 00:03:11.290631
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 00:03:20.191113
++%t sys/device/14c
+
+# 2026-10-01 00:03:22.525237
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 00:03:30.718099
++%a 1
+
+# 2026-10-01 00:03:34.560385
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 13:54:44.006233
++1
+
+# 2026-10-01 14:36:07.585555
++0
+
+# 2026-10-01 14:37:29.417627
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-10-01 15:38:58.399258
++%t sys/device/request
+
+# 2026-10-01 15:38:59.425241
++1
+
+# 2026-10-01 15:39:12.265885
++%k 0
+
+# 2026-10-01 15:39:21.352858
++%k --reset
+
+# 2026-10-01 15:39:26.532077
++1
+
+# 2026-10-01 16:18:58.593800
++%k 2**128
+
+# 2026-10-01 16:18:59.611140
++1
+
+# 2026-10-01 16:19:04.737621
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 16:20:11.239377
++os
+
+# 2026-10-01 16:20:15.885046
++import os
+
+# 2026-10-01 16:20:26.538482
++import requests
+
+# 2026-10-01 16:21:20.408144
++1
+
+# 2026-10-01 16:21:27.211874
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 17:34:53.869547
++%t sys/device/14c
+
+# 2026-10-01 17:34:54.759975
++1
+
+# 2026-10-01 17:35:04.896127
++%a 1
+
+# 2026-10-01 17:35:08.669107
++1
+
+# 2026-10-01 17:35:25.074487
++0
+
+# 2026-10-01 17:35:33.374407
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 17:36:11.195211
++%t sys/device/bjhtw
+
+# 2026-10-01 17:36:12.386766
++1
+
+# 2026-10-01 17:36:19.308969
++%t sys/device/lgz
+
+# 2026-10-01 17:36:20.594602
++3
+
+# 2026-10-01 17:36:32.183796
++%t sys/device/bjhtw
+
+# 2026-10-01 17:36:41.460895
++aliyun_git
+
+# 2026-10-01 17:38:01.721402
++%t sys/device/request
+
+# 2026-10-01 17:38:07.856837
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 17:38:11.425433
++dir()
+
+# 2026-10-01 17:45:10.022525
++%s
+
+# 2026-10-01 18:37:11.900743
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 18:37:25.644034
++dir()
+
+# 2026-10-01 19:14:33.166669
++%t runx
+
+# 2026-10-01 19:14:35.344780
++1
+
+# 2026-10-01 19:14:39.523144
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 19:14:58.811581
++%s
+
+# 2026-10-01 19:15:12.605621
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-10-01 19:15:16.234576
++dir()
+
+# 2026-10-01 19:15:26.116996
++gms
++.mqtt_net.stats.get_report()
+
+# 2026-10-01 19:15:30.941192
++gms.mqtt_net.stats.get_report()
+
+# 2026-10-01 19:15:57.957462
++1
+
+# 2026-10-01 19:32:54.816658
++ghs
+
+# 2026-10-01 19:50:13.484733
++%s
+
+# 2026-10-01 19:50:21.657057
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-01 19:50:51.147726
++gms.mqtt_net.stats.get_report()
+
+# 2026-10-01 21:13:52.244777
++%t q
+
+# 2026-10-01 21:13:54.023411
++1
+
+# 2026-10-01 21:26:25.604309
++gms.mqtt_net.stats.get_report()
+
+# 2026-10-02 12:15:04.646281
++%t q
+
+# 2026-10-02 12:15:06.292648
++1
+
+# 2026-10-02 12:15:12.614947
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-02 12:21:30.203557
++dir()
+
+# 2026-10-02 12:21:35.256074
++%s
+
+# 2026-10-02 12:22:23.219727
++0
+
+# 2026-10-02 13:09:17.584467
++%t q
+
+# 2026-10-02 13:09:18.594318
++1
+
+# 2026-10-02 13:09:27.656670
++%k 2**128
+
+# 2026-10-02 13:09:29.350646
++1
+
+# 2026-10-02 13:09:34.368554
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-02 13:09:57.606133
++1
+
+# 2026-10-02 13:10:00.694979
++%s
+
+# 2026-10-02 13:10:14.992771
++%h
+
+# 2026-10-02 13:37:57.239508
++23
+
+# 2026-10-02 13:38:31.537980
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-02 13:38:40.874484
++0
+
+# 2026-10-02 13:42:11.254194
++dir()
+
+# 2026-10-02 13:42:27.083116
++await tts('a')
+
+# 2026-10-02 14:17:59.318265
++%t runx
+
+# 2026-10-02 14:18:00.560020
++1
+
+# 2026-10-02 14:18:11.169292
++os.listdir()
+
+# 2026-10-02 14:18:24.045976
++open('main.py').read()
+
+# 2026-10-02 16:27:55.952125
++0
+
+# 2026-10-02 16:28:01.949391
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-02 16:28:40.907881
++0
+
+# 2026-10-02 17:04:20.989221
++%t sys/device/14c
+
+# 2026-10-02 17:04:22.095207
++1
+
+# 2026-10-02 17:04:30.263127
++%a 1
+
+# 2026-10-02 17:05:05.873741
++1
+
+# 2026-10-02 17:05:31.952347
++import pprint;r=pprint
+
+# 2026-10-02 20:50:01.475083
++0
+
+# 2026-10-02 20:50:08.045812
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-02 20:50:12.115345
++%s
+
+# 2026-10-02 20:50:19.367633
++gms.mqtt_net.stats.get_report()
+
+# 2026-10-02 20:50:29.805056
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-10-02 20:50:46.150618
++%s
+
+# 2026-10-02 21:34:36.767904
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-10-02 21:35:19.626431
++dir(sys)
+
+# 2026-10-02 21:35:36.098839
++sys._home
+
+# 2026-10-02 21:36:02.084351
++sys._git
+
+# 2026-10-02 23:07:13.903729
++0
+
+# 2026-10-02 23:29:03.510483
++%t sys/device/k12
+
+# 2026-10-02 23:29:05.092054
++2
+
+# 2026-10-02 23:29:12.736906
++1
+
+# 2026-10-02 23:29:39.228328
++0
+
+# 2026-10-02 23:30:05.953870
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-10-02 23:31:02.239280
++0
+
+# 2026-10-02 23:38:53.126537
++%t sys/device/request
+
+# 2026-10-02 23:38:54.452000
++1
+
+# 2026-10-02 23:39:44.537016
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-03 11:53:21.401260
++1
+
+# 2026-10-03 11:53:27.474709
++%s
+
+# 2026-10-03 11:54:07.819092
++%t sys/device/14c
+
+# 2026-10-03 11:54:09.163172
++w
+
+# 2026-10-03 13:25:38.290851
++1
+
+# 2026-10-03 14:56:17.334275
++%a 1
+
+# 2026-10-03 14:56:20.437649
++1
+
+# 2026-10-03 14:56:26.578824
++mqtt_server.mqtt_net.stats.get_report(is_windows_cmd=1)
+
+# 2026-10-03 14:56:33.839880
++mqtt_server.mqtt_net.stats.get_report()
+
+# 2026-10-03 18:35:19.423965
++1
+
+# 2026-10-03 19:06:54.566808
++%t q
+
+# 2026-10-03 19:06:55.584586
++1
+
+# 2026-10-03 19:07:07.607788
++%t runx
+
+# 2026-10-03 19:07:08.465873
++1
+
+# 2026-10-03 19:20:57.992329
++%t sys/device/request
+
+# 2026-10-03 19:21:03.022880
++import platform;platform.node(),platform.machine(),platform.release()#pla
+
+# 2026-10-03 19:22:50.097759
++%s
