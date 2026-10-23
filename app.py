@@ -22,6 +22,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "multi_mqtt"))
 
 import server_http_wsgi
 import server_mqtt
+from rpc_executor import PythonExecutor
+
+# HTTP RPC 的持久命名空间改为本模块 globals（原先是 server_http_wsgi 模块自己的
+# globals）。这样 /r=dir() 能看到 app.py 里的全部名字（tts、gms、server_mqtt …），
+# 与 MQTT 通道共用同一份命名空间。执行器零拷贝持有该字典引用，之后定义的名字
+# 与 lifespan 里才赋值的 gms 都会实时可见，无需再手动注入。
+server_http_wsgi.RPCRequestHandler.executor = PythonExecutor(globals=globals())
 
 # ---------------------------------------------------------------------------
 # edge-tts 参数规范化
@@ -182,15 +189,6 @@ async def tts(text: str, voice: str = 'zh-CN-YunxiNeural', fmt="mp3",
     # with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as output:
         # output.write(audio)
         # return output.name
-
-
-# HTTP RPC（根路径 / 与旧 /rpc）的持久命名空间在导入 server_http_wsgi
-# 时就已建好，默认只含该模块自身的 globals；把本模块的 tts 等显式注入，
-# 才能支持 /await tts('...',response=response) 这种直接调用。
-server_http_wsgi.RPCRequestHandler.executor.globals_dict.update({
-    "tts": tts,
-    # "synthesize": synthesize,
-})
 
 
 @spaces.GPU(duration=15)
@@ -991,10 +989,8 @@ async def lifespan(app):
     global gms
     # MQTT 配置（request_topic / pub_key / broker_list 等）全部由
     # multi_mqtt/rpc.json 提供，server_mqtt.start() 启动时自动读取，本文件不硬编码。
+    # HTTP RPC 命名空间就是本模块 globals，这里的赋值对 /r=dir() 立即可见。
     gms = await asyncio.to_thread(server_mqtt.start, globals=globals())
-    # HTTP RPC 的持久命名空间是 server_http_wsgi 模块自身的 globals（不是 app.py 的），
-    # 不注入的话 /r=dir() 里看不到 gms；注入后可用 gms.get_rpc_config() / rpc_config(...)。
-    server_http_wsgi.RPCRequestHandler.executor.globals_dict["gms"] = gms
     try:
         yield
     finally:
