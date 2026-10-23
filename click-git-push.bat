@@ -205,7 +205,18 @@ def sync_and_commit():
         commit_staged(files)
     else:
         log("  无变更，跳过提交")
-    return len(files)
+    return files
+
+
+# 只有这些文件改动才推送（会触发 Space 重新构建/部署）；其余改动仅提交。
+PUSH_TRIGGER_FILES = ("app.py", "multi_mqtt/server_mqtt.py")
+
+
+def need_push(files):
+    for name in files:
+        if name.replace("\\", "/") in PUSH_TRIGGER_FILES:
+            return True
+    return False
 
 
 def push():
@@ -293,7 +304,11 @@ def main():
     log("同步源：%s" % SRC)
     log("目标仓：%s" % REPO)
     log("远端：%s" % (masked(REPO_URL) if REPO_URL else "origin（.git/config）"))
-    sync_and_commit()
+    files = sync_and_commit()
+    if not need_push(files):
+        log("[2/4] 本次改动未涉及 app.py / multi_mqtt/server_mqtt.py，仅本地提交，跳过推送与线上校验。")
+        log("全部完成。")
+        return
     push()
     ok = verify()
     if not ok:
