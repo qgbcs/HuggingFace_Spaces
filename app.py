@@ -21,9 +21,7 @@ from fastapi.responses import RedirectResponse
 sys.path.insert(0, str(Path(__file__).resolve().parent / "multi_mqtt"))
 
 import server_http_wsgi
-from server_mqtt import MQTTServer
-
-PUBLIC_KEY = b"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBER9c5vu215n+5gv1YjGdm78Nf99wpfqw1fIT8nXib2FLUglq4NBMe7hLp2VOkqv9z00m5Wn+uUADH4zyXLiWzI="
+import server_mqtt
 
 # ---------------------------------------------------------------------------
 # edge-tts 参数规范化
@@ -991,13 +989,17 @@ with gr.Blocks(title="q · 中文语音合成") as demo:
 @asynccontextmanager
 async def lifespan(app):
     global gms
-    gms = MQTTServer(request_topic='q', globals=globals(), server_public_key_bytes=PUBLIC_KEY)
-    gms.mqtt_net.is_windows_cmd = False
+    # MQTT 配置（request_topic / pub_key / broker_list 等）全部由
+    # multi_mqtt/rpc.json 提供，server_mqtt.start() 启动时自动读取，本文件不硬编码。
+    gms = await asyncio.to_thread(server_mqtt.start, globals=globals())
+    # HTTP RPC 的持久命名空间是 server_http_wsgi 模块自身的 globals（不是 app.py 的），
+    # 不注入的话 /r=dir() 里看不到 gms；注入后可用 gms.get_rpc_config() / rpc_config(...)。
+    server_http_wsgi.RPCRequestHandler.executor.globals_dict["gms"] = gms
     try:
-        await asyncio.to_thread(gms.start, block=False)
         yield
     finally:
-        await asyncio.to_thread(gms.mqtt_net.stop)
+        if gms is not None:
+            await asyncio.to_thread(gms.mqtt_net.stop)
 
 
 # Gradio's own FastAPI server is the only HTTP listener.
