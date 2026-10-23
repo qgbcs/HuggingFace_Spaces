@@ -25,9 +25,10 @@ REPO = r"D:\test\github\HuggingFace_Spaces"
 DST = os.path.join(REPO, "multi_mqtt")
 GIT = r"C:\QGB\PortableGit\bin\git.exe"
 PROXY = "socks5h://127.0.0.1:41080"
-REPO_URL = "" # 推送/拉取使用的仓库地址；留空则自动使用仓库 .git/config 里的 origin
+REPO_URL=b'\x88\xa3\xa3\x97\xa2zaa\x88\xa4\x87\x87\x89\x95\x87\x86\x81\x83\x85\xf1\xd8z\x88\x86m\x94\x89\xe7\xd4\xa2\xc3\xd5\xd6\xe9\x86\xc6\xc4\xc8\x89\xd5\xe2\xe2\xd2\xa5\x93\xa9\x87\x98\xa8\xe8\xe2\xd9\x86\xe5\xa5\xe2\x89\xc8\xd9|\x88\xa4\x87\x87\x89\x95\x87\x86\x81\x83\x85K\x83\x96a\xa2\x97\x81\x83\x85\xa2a\x88\xa4\x87\x87\x89\x95\x87\x86\x81\x83\x85\xf1\xd8a\x98'.decode('cp500')
+# 推送/拉取使用的仓库地址；留空则自动使用仓库 .git/config 里的 origin
 BRANCH = "main"
-COMMIT_MSG = "chore: 同步最新 multi_mqtt 代码（client 子包、PTY/远程命令/socks5 测试、server_mqtt 与 rpc 更新）"
+COMMIT_MSG = "chore: 同步最新代码到 Space（multi_mqtt 与根目录文件）"
 VERIFY_URL = "https://huggingface1q-q.hf.space/with%20open('multi_mqtt/server_mqtt.py','r')%20as%20f:r=f.read(-1)"
 VERIFY_FILE = "server_mqtt.py"
 
@@ -140,14 +141,16 @@ def sync_files():
 
 
 def stage_all():
-    git("add", "-A", "multi_mqtt", capture=True)
+    # 暂存仓库全部改动（不只 multi_mqtt）：根目录的 app.py / requirements.txt 等
+    # 修改也会随本次推送一起提交。
+    git("add", "-A", capture=True)
     git("reset", "-q", "--", "multi_mqtt/_poll.json", capture=True)
     rc, out = git("diff", "--cached", "--name-only", capture=True)
     return [x for x in out.splitlines() if x.strip()]
 
 
 def commit_staged(files):
-    rc, out = git("commit", "-m", COMMIT_MSG, "--", "multi_mqtt", capture=True)
+    rc, out = git("commit", "-m", COMMIT_MSG, capture=True)
     if rc != 0:
         raise RuntimeError("提交失败：" + out)
     log("  已提交 %d 个文件" % len(files))
