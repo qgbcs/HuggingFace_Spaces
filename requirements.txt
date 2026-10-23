@@ -9,3 +9,4 @@ ecdsa>=0.19,<1
 cryptography>=42
 prompt_toolkit>=3.0,<4
 Pygments>=2.15
+ipython

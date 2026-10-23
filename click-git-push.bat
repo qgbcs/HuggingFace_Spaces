@@ -20,8 +20,8 @@ import subprocess
 import sys
 import time
 
-SRC = r"C:\test\github\multi_mqtt"
-REPO = r"D:\test\github\HuggingFace_Spaces"
+SRC = r"C:\test\github\multi_mqtt\"
+REPO = r"D:\test\github\HuggingFace_Spaces\"
 DST = os.path.join(REPO, "multi_mqtt")
 GIT = r"C:\QGB\PortableGit\bin\git.exe"
 PROXY = "socks5h://127.0.0.1:41080"
@@ -29,8 +29,10 @@ REPO_URL=b'\x88\xa3\xa3\x97\xa2zaa\x88\xa4\x87\x87\x89\x95\x87\x86\x81\x83\x85\x
 # 推送/拉取使用的仓库地址；留空则自动使用仓库 .git/config 里的 origin
 BRANCH = "main"
 COMMIT_MSG = "chore: 同步最新代码到 Space（multi_mqtt 与根目录文件）"
-VERIFY_URL = "https://huggingface1q-q.hf.space/with%20open('multi_mqtt/server_mqtt.py','r')%20as%20f:r=f.read(-1)"
-VERIFY_FILE = "server_mqtt.py"
+
+VERIFY_FILE = "multi_mqtt/server_mqtt.py"
+VERIFY_URL = f"https://huggingface1q-q.hf.space/with%20open('{VERIFY_FILE}','r')%20as%20f:r=f.read(-1)"
+
 
 SKIP_DIRS = {".git", ".stfolder", ".trae", "__pycache__", "venv", ".venv"}
 SKIP_SUFFIX = (".db", ".db-shm", ".db-wal", ".pyc", ".pyo")
@@ -272,8 +274,8 @@ def http_get(url, proxy=None, timeout=30):
 
 
 def verify(timeout=420, interval=10):
-    log("[4/4] 校验线上 multi_mqtt/server_mqtt.py 是否为最新 ...")
-    want = sha256_file(os.path.join(SRC, VERIFY_FILE))
+    log(f"[4/4] 校验线上 {VERIFY_FILE} 是否为最新 ...")
+    want = sha256_file(os.path.join(REPO,VERIFY_FILE))
     deadline = time.time() + timeout
     last = ""
     while True:
